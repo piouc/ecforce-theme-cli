@@ -7,13 +7,14 @@ import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
 import { resolve } from 'path'
+import { config } from './lib/load-config.js'
 
 const rootPath = appRootPath.resolve('/theme')
 
 const program = new Command()
 program
   .command('pull')
-  .argument('<theme id>')
+  .argument('<theme id>', 'Theme ID', config.themeId)
   .action(async (themeId) => {
     await pull(rootPath, themeId)
   })
