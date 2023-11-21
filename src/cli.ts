@@ -13,7 +13,7 @@ const rootPath = path.join(process.cwd(), 'theme')
 const program = new Command()
 program
   .command('pull')
-  .argument('<theme id>', 'Theme ID', config.themeId)
+  .argument('[themeid]', 'Theme ID', config.themeId)
   .action(async (themeId) => {
     await pull(rootPath, themeId)
   })

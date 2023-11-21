@@ -99,7 +99,8 @@ export const pull = async (rootPath: string, themeId: string) => {
     url: attachmentUrl,
     responseType: 'stream'
   })
-  await fsp.rmdir(rootPath)
+
+  await fsp.rm(rootPath, {recursive: true, force: true})
   await waitClose(downloadRes.data.pipe(unzipStream.Extract({path: rootPath})))
   
   console.log('complete')
