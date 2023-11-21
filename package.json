@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "develop": "node --loader ts-node/esm ./src/index.ts",
     "build": "tsc"
   },
   "bin": {
-    "ecforce-theme": "dist/bin.js"
+    "ecforce-theme": "dist/cli.js"
   },
   "files": [
     "dist"
   ],
+  "homepage": "https://github.com/piouc/ecforce-theme-cli",
   "keywords": [],
   "author": "",
   "license": "ISC",
