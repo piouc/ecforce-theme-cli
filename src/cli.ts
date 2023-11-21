@@ -2,14 +2,13 @@
 
 import { Command } from 'commander'
 import { pull, sync, update, del } from './lib/api.js'
-import appRootPath from 'app-root-path'
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 import { config } from './lib/load-config.js'
 
-const rootPath = appRootPath.resolve('/theme')
+const rootPath = path.join(process.cwd(), 'theme')
 
 const program = new Command()
 program
@@ -35,7 +34,7 @@ program
         console.log(`connected ${req.socket.remoteAddress}`)
       })
 
-      const watcher = chokidar.watch(appRootPath.resolve('/theme'), {cwd: rootPath, ignoreInitial: true})
+      const watcher = chokidar.watch(rootPath, {cwd: rootPath, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
           case 'add':
