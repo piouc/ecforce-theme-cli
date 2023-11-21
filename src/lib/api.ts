@@ -65,7 +65,7 @@ const waitClose = (stream: NodeJS.ReadableStream | NodeJS.WritableStream) => {
   })
 }
 
-export const pull = async (themeId: string, rootPath: string) => {
+export const pull = async (rootPath: string, themeId: string) => {
   const websocketUrl = `wss://${new URL(config.baseUrl).host}/websocket`
   const ws = new WebSocket(websocketUrl, {
     headers: {

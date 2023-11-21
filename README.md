@@ -9,11 +9,11 @@ npm i -D ecforce-theme-cli
 Put `ecforce.config.json` to project root.
 ```json
 {
-  "basicAuthUsername": "BASIC_AUTH_USERNAME"
-  "basicAuthPassword": "BASIC_AUTH_PASSWORD"
-  "username": "USERNAME"
-  "password": "PASSWORD"
-  "baseUrl": "https://HOSTNAME/"
+  "basicAuthUsername": "BASIC_AUTH_USERNAME",
+  "basicAuthPassword": "BASIC_AUTH_PASSWORD",
+  "username": "USERNAME",
+  "password": "PASSWORD",
+  "baseUrl": "https://HOSTNAME/",
   "themeId": "THEME_ID"
 }
 ```

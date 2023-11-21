@@ -15,7 +15,7 @@ program
   .command('pull')
   .argument('<theme id>')
   .action(async (themeId) => {
-    await pull(themeId, rootPath)
+    await pull(rootPath, themeId)
   })
 
 program
