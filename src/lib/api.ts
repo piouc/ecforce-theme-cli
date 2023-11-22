@@ -6,6 +6,8 @@ import { RawData, WebSocket } from 'ws'
 import unzipStream from 'unzip-stream'
 import { IncomingMessage } from 'node:http'
 import fsp from 'fs/promises'
+import { relative } from 'node:path'
+import FormData from 'form-data';
 
 export const sync = async (rootPath: string) => {
   const archive = archiver('zip')
@@ -77,7 +79,7 @@ export const pull = async (rootPath: string, themeId: string) => {
 
   client({
     method: 'post',
-    url: `/admin/themes/${config.themeId}/theme_download`
+    url: `/admin/themes/${themeId}/theme_download`
   })
   const {url} = await waitForNotification(ws, data => {
     return /^テーマ ダウンロード\(.*\) を登録しました。$/.test(data.msg)
@@ -114,6 +116,21 @@ export const update = async (path: string, code: string) => {
       code: code,
       prev_code: ''
     })
+  })
+}
+
+export const updateBinaryies = async (rootPath: string, paths: string[]) => {
+  const archive = archiver('zip')
+  const formData = new FormData()
+  paths.forEach(path => archive.file(path, {name: relative(rootPath, path)}))
+
+  formData.append('file', archive, `${config.themeId}.zip`)
+  archive.finalize()
+
+  await client({
+    method: 'post',
+    url: `/admin/themes/${config.themeId}/theme_zip_upload`,
+    data: formData
   })
 }
 

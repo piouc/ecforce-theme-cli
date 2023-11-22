@@ -1,11 +1,11 @@
 #! /usr/bin/env node
 
 import { Command } from 'commander'
-import { pull, sync, update, del } from './lib/api.js'
+import { pull, sync, update, del, updateBinaryies } from './lib/api.js'
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
-import path, { resolve } from 'path'
+import path, { parse, resolve } from 'path'
 import { config } from './lib/load-config.js'
 
 const rootPath = path.join(process.cwd(), 'theme')
@@ -33,17 +33,18 @@ program
       wss.on('connection', (ws, req) => {
         console.log(`connected ${req.socket.remoteAddress}`)
       })
-
+      
       const watcher = chokidar.watch(rootPath, {cwd: rootPath, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
           case 'add':
-            await update(path, await fsp.readFile(resolve(rootPath, path), 'utf8'))
-            console.log(`add ${path}`)
-            break
           case 'change':
-            await update(path, await fsp.readFile(resolve(rootPath, path), 'utf8'))
-            console.log(`update ${path}`)
+            if(['html', 'liquid', 'svg', 'js', 'json', 'css',].includes(parse(path).ext)){
+              await update(path, await fsp.readFile(resolve(rootPath, path), 'utf8'))
+            } else {
+              await updateBinaryies(rootPath, [resolve(rootPath, path)])
+            }
+            console.log(`${type} ${path}`)
             break
           case 'unlink':
             await del(path)
@@ -51,7 +52,7 @@ program
             break
         }
         wss.clients.forEach(ws => {
-          ws.send('update')
+          ws.send(JSON.stringify({type: 'update'}))
         })
       })
     }

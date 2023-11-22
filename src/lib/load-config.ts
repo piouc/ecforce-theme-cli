@@ -1,5 +1,6 @@
 import fsp from 'fs/promises'
 import path from 'path'
+import { packageDirectory } from 'pkg-dir'
 
 type Config = {
   basicAuthUsername: string
@@ -10,7 +11,10 @@ type Config = {
   themeId: string
 }
 
-const configPath = path.join(process.cwd(), 'ecforce.config.json')
+const rootDir = await packageDirectory()
+if(!rootDir) throw new Error('Couldn\'t find ecforce.config.json')
+
+const configPath = path.join(rootDir, 'ecforce.config.json')
 
 const configJson = await fsp.readFile(configPath, 'utf8')
 
