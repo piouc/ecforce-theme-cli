@@ -30,5 +30,10 @@ watch files
 
 ### Pull
 ```bash
-npx ecforce-theme-cli pull {THEME_ID}
+npx ecforce-theme-cli pull [theme id]
+```
+
+### Preview
+```bash
+npx ecforce-theme-cli preview [theme id]
 ```

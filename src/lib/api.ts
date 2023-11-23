@@ -143,3 +143,15 @@ export const del = async (path: string) => {
     })
   })
 }
+
+export const getPreviewUrl = async (themeId: string) => {
+  const res = await client<{'return_url': string}>({
+    method: 'post',
+    url: `/admin/previews`,
+    data: querystring.encode({
+      'source_id': themeId,
+      'source_type': 'Theme'
+    })
+  })
+  return new URL(res.data.return_url, config.baseUrl).href
+}

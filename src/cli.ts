@@ -1,21 +1,20 @@
 #! /usr/bin/env node
 
-import { Command } from 'commander'
-import { pull, sync, update, del, updateBinaryies } from './lib/api.js'
+import { Command } from '@commander-js/extra-typings'
+import { pull, sync, update, del, updateBinaryies, getPreviewUrl } from './lib/api.js'
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
-import path, { parse, resolve } from 'path'
+import { parse, resolve } from 'path'
 import { config } from './lib/load-config.js'
-
-const rootPath = path.join(process.cwd(), 'theme')
+import open from 'open'
 
 const program = new Command()
 program
   .command('pull')
   .argument('[themeid]', 'Theme ID', config.themeId)
   .action(async (themeId) => {
-    await pull(rootPath, themeId)
+    await pull(config.themeDir, themeId)
   })
 
 program
@@ -23,7 +22,7 @@ program
   .option('-w, --watch', 'watch files')
   .action(async (options) => {
     console.log('sync: uploading zip')
-    await sync(rootPath)
+    await sync(config.themeDir)
     console.log('sync: complete')
 
     if(options.watch){
@@ -34,15 +33,15 @@ program
         console.log(`connected ${req.socket.remoteAddress}`)
       })
       
-      const watcher = chokidar.watch(rootPath, {cwd: rootPath, ignoreInitial: true})
+      const watcher = chokidar.watch(config.themeDir, {cwd: config.themeDir, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
           case 'add':
           case 'change':
             if(['html', 'liquid', 'svg', 'js', 'json', 'css',].includes(parse(path).ext)){
-              await update(path, await fsp.readFile(resolve(rootPath, path), 'utf8'))
+              await update(path, await fsp.readFile(resolve(config.themeDir, path), 'utf8'))
             } else {
-              await updateBinaryies(rootPath, [resolve(rootPath, path)])
+              await updateBinaryies(config.themeDir, [resolve(config.themeDir, path)])
             }
             console.log(`${type} ${path}`)
             break
@@ -57,5 +56,14 @@ program
       })
     }
   })
+
+program
+  .command('preview')
+  .argument('[themeid]', 'Theme ID', config.themeId)
+  .action(async (themeId) => {
+    const url = await getPreviewUrl(themeId)
+    await open(url)
+  })
+  
 
 program.parse()
