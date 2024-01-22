@@ -8,11 +8,12 @@ import fsp from 'fs/promises'
 import { parse, resolve } from 'path'
 import { config } from './lib/load-config.js'
 import open from 'open'
+import { lpPull, lpSync } from './lib/lp-api.js'
 
 const program = new Command()
 program
   .command('pull')
-  .argument('[themeid]', 'Theme ID', config.themeId)
+  .argument('[theme-id]', 'Theme ID', config.themeId)
   .action(async (themeId) => {
     await pull(config.themeDir, themeId)
   })
@@ -64,6 +65,41 @@ program
     const url = await getPreviewUrl(themeId)
     await open(url)
   })
-  
+
+program
+  .command('lp-pull')
+  .argument('[lp-id]', 'LP ID', config.themeId)
+  .action(async (lpId) => {
+    await lpPull(config.lpDir, lpId)
+  })
+
+program
+  .command('lp-sync')
+  .argument('[lp-id]', 'LP ID', config.themeId)
+  .option('-w, --watch', 'watch files')
+  .action(async (lpId, options) => {
+    await lpSync(config.lpDir, lpId)
+    
+    if(options.watch){
+      const wss = new WebSocketServer({
+        port: 8080
+      })
+      wss.on('connection', (ws, req) => {
+        console.log(`connected ${req.socket.remoteAddress}`)
+      })
+      
+      const watcher = chokidar.watch(config.themeDir, {cwd: config.lpDir, ignoreInitial: true})
+      watcher.on('all', async (type, path, status) => {
+        switch(type){
+          case 'change':
+            lpSync(config.lpDir, lpId)
+            break
+        }
+        wss.clients.forEach(ws => {
+          ws.send(JSON.stringify({type: 'update'}))
+        })
+      })
+    }
+  })
 
 program.parse()

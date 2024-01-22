@@ -1,10 +1,6 @@
-import axios, { AxiosError, AxiosInstance, toFormData } from 'axios'
+import { AxiosInstance } from 'axios'
 import { config } from './load-config.js'
-import FormData from 'form-data'
 import querystring from 'querystring'
-import { CookieJar } from 'tough-cookie'
-
-const jar = new CookieJar()
 
 export const auth = async (client: AxiosInstance) => {
   await signIn(client)

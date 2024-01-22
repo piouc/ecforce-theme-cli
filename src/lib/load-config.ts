@@ -11,6 +11,8 @@ type Config = {
   baseUrl: string
   themeId: string
   themeDir: string
+  lpId: string
+  lpDir: string
 }
 
 const rootDir = await packageDirectory()
@@ -27,7 +29,9 @@ const schema = Joi.object<Config>({
   password: Joi.string().required(),
   baseUrl: Joi.string().required(),
   themeId: Joi.string().required(),
-  themeDir: Joi.string().required()
+  themeDir: Joi.string().required(),
+  lpId: Joi.string().required(),
+  lpDir: Joi.string().required()
 })
 
 const validated = schema.validate(JSON.parse(configJson))
@@ -41,5 +45,6 @@ if(validated.warning){
 
 const config: Config = validated.value
 config.themeDir = path.resolve(rootDir, config.themeDir)
+config.lpDir = path.resolve(rootDir, config.lpDir)
 
 export {config}

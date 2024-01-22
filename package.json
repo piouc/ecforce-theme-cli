@@ -37,6 +37,7 @@
     "commander": "^11.1.0",
     "debounce": "^2.0.0",
     "form-data": "^4.0.0",
+    "html-entities": "^2.4.0",
     "joi": "^17.11.0",
     "open": "^9.1.0",
     "p-limit": "^5.0.0",
