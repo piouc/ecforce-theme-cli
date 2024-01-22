@@ -42,58 +42,74 @@ npx ecforce-theme-cli preview [theme id]
 <details>
   <summary>Code</summary>
 
+  For theme
   ```html
-    {% if theme_preview_mode %}
-      <script>
-        const connectWSServer = () => {
-          const ws = new WebSocket('ws://localhost:8080')
-          ws.addEventListener('message', message => {
-            const data = JSON.parse(message.data)
-            if(data.type === 'update'){
-              location.reload()
-            }
-          })
-        }
+  {% if theme_preview_mode %}
+    <script>
+      const connectWSServer = () => {
+        const ws = new WebSocket('ws://localhost:8080')
+        ws.addEventListener('message', message => {
+          const data = JSON.parse(message.data)
+          if(data.type === 'update'){
+            location.reload()
+          }
+        })
+      }
 
-        let localHosted = null
-        new MutationObserver((mutations) => {
-          for(const mutation of mutations){
-            for(const node of mutation.addedNodes){
-              if(node.nodeName !== 'SCRIPT') break
-              if(node.src.includes('/ec_force/assets/')){
-                if(localHosted === null){
-                  const xhr = new XMLHttpRequest()
-                  xhr.open('HEAD', 'http://localhost:8088/', false)
-                  try {
-                    xhr.send()
-                    if(xhr.readyState === 4){
-                      localHosted = true
-                      connectWSServer()
-                    } else {
-                      throw new Error()
-                    }
-                  } catch(err) {
-                    localHosted = false
+      let localHosted = null
+      new MutationObserver((mutations) => {
+        for(const mutation of mutations){
+          for(const node of mutation.addedNodes){
+            if(node.nodeName !== 'SCRIPT') break
+            if(node.src.includes('/ec_force/assets/')){
+              if(localHosted === null){
+                const xhr = new XMLHttpRequest()
+                xhr.open('HEAD', 'http://localhost:8088/', false)
+                try {
+                  xhr.send()
+                  if(xhr.readyState === 4){
+                    localHosted = true
+                    connectWSServer()
+                  } else {
+                    throw new Error()
                   }
-                }
-                if(localHosted){
-                  node.src = node.src.replace(/.*\/ec_force\/assets\//, 'http://localhost:8088/')
+                } catch(err) {
+                  localHosted = false
                 }
               }
-              return
+              if(localHosted){
+                node.src = node.src.replace(/.*\/ec_force\/assets\//, 'http://localhost:8088/')
+              }
+            }
+            return
+          }
+        }
+      }).observe(document, {childList: true, subtree: true})
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('link').forEach(link => {
+          if(localHosted === true && link.rel === 'stylesheet' && link.href.includes('/ec_force/assets/')){
+            if(localHosted){
+              link.href = link.href.replace(/.*\/ec_force\/assets\//, 'http://localhost:8088/')
             }
           }
-        }).observe(document, {childList: true, subtree: true})
-        document.addEventListener('DOMContentLoaded', () => {
-          document.querySelectorAll('link').forEach(link => {
-            if(localHosted === true && link.rel === 'stylesheet' && link.href.includes('/ec_force/assets/')){
-              if(localHosted){
-                link.href = link.href.replace(/.*\/ec_force\/assets\//, 'http://localhost:8088/')
-              }
-            }
-          })
         })
-      </script>
-    {% endif %}
+      })
+    </script>
+  {% endif %}
+  ```
+
+  For LP
+  ```html
+  <script>
+    const connectWSServer = () => {
+      const ws = new WebSocket('ws://localhost:8080')
+      ws.addEventListener('message', message => {
+        const data = JSON.parse(message.data)
+        if(data.type === 'update'){
+          location.reload()
+        }
+      })
+    }
+  </script>
   ```
 </details>
