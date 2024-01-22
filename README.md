@@ -39,9 +39,9 @@ npx ecforce-theme-cli preview [theme id]
 ```
 
 ### Auto reload script
-<detail>
+<details>
   <summary>Code</summary>
-  
+
   ```html
     {% if theme_preview_mode %}
       <script>
@@ -96,4 +96,4 @@ npx ecforce-theme-cli preview [theme id]
       </script>
     {% endif %}
   ```
-</detail>
+</details>
