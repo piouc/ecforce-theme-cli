@@ -68,6 +68,7 @@ export const lpSync = async (rootPath: string, lpId: string) => {
   })))
   const token = getToken(res.data)
   if(!token) throw new Error('Can not get authenticity token.')
+  console.log('upload')
   await client({
     method: 'post',
     url: `https://porelogy.com/admin/templates/${lpId}`,
@@ -78,4 +79,5 @@ export const lpSync = async (rootPath: string, lpId: string) => {
       authenticity_token: token,
     }).toString()
   })
+  console.log('complete')
 }

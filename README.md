@@ -100,6 +100,7 @@ npx ecforce-theme-cli preview [theme id]
 
   For LP
   ```html
+  {%%}
   <script>
     const connectWSServer = () => {
       const ws = new WebSocket('ws://localhost:8080')

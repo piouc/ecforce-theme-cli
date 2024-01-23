@@ -88,11 +88,12 @@ program
         console.log(`connected ${req.socket.remoteAddress}`)
       })
       
-      const watcher = chokidar.watch(config.themeDir, {cwd: config.lpDir, ignoreInitial: true})
+      const watcher = chokidar.watch(config.lpDir, {cwd: config.lpDir, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
           case 'change':
             lpSync(config.lpDir, lpId)
+            console.log(`sync`)
             break
         }
         wss.clients.forEach(ws => {
