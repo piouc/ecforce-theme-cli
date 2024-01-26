@@ -30,8 +30,8 @@ const schema = Joi.object<Config>({
   baseUrl: Joi.string().required(),
   themeId: Joi.string().required(),
   themeDir: Joi.string().required(),
-  lpId: Joi.string(),
-  lpDir: Joi.string()
+  lpId: Joi.string().optional(),
+  lpDir: Joi.string().optional()
 })
 
 const validated = schema.validate(JSON.parse(configJson))
