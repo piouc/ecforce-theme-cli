@@ -19,20 +19,24 @@ const signIn = async (client: AxiosInstance) => {
   const authenticityToken = signInPageHtml.match(/(?<=<input type="hidden" name="authenticity_token" value=").+?(?=")/)?.[0]
   if(!authenticityToken) throw new Error('Failed load sign in page.')
 
-  await client({
-    method: 'post',
-    url: '/admins/sign_in',
-    auth: {
-      username: config.basicAuthUsername,
-      password: config.basicAuthPassword
-    },
-    data: querystring.encode({
-      'authenticity_token': authenticityToken,
-      'admin[email]': config.username,
-      'admin[password]': config.password,
-      'admin[remember_me]': '1',
-      'commit': 'Start'
+  try {
+    await client({
+      method: 'post',
+      url: '/admins/sign_in',
+      auth: {
+        username: config.basicAuthUsername,
+        password: config.basicAuthPassword
+      },
+      data: querystring.encode({
+        'authenticity_token': authenticityToken,
+        'admin[email]': config.username,
+        'admin[password]': config.password,
+        'admin[remember_me]': '1',
+        'commit': 'Start'
+      })
     })
-  })
+  } catch(err){
+    console.error(err)
+  }
   console.log('Signed in')
 }
