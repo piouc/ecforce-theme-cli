@@ -1,4 +1,4 @@
-import { AxiosInstance } from 'axios'
+import { AxiosInstance, AxiosError } from 'axios'
 import { config } from './load-config.js'
 import querystring from 'querystring'
 
@@ -36,7 +36,11 @@ const signIn = async (client: AxiosInstance) => {
       })
     })
   } catch(err){
-    console.error(err)
+    if(err instanceof AxiosError){
+      console.error(err.code)
+    } else {
+      console.error(err)
+    }
   }
   console.log('Signed in')
 }
