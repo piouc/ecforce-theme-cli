@@ -1,6 +1,6 @@
 {
   "name": "ecforce-theme-cli",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "CLI tools for ecforce theme development",
   "type": "module",
   "scripts": {
