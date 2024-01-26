@@ -70,6 +70,7 @@ program
   .command('lp-pull')
   .argument('[lp-id]', 'LP ID', config.themeId)
   .action(async (lpId) => {
+    if(!config.lpDir) throw new Error('Usin lp command requied lpId and lpDir config.')
     await lpPull(config.lpDir, lpId)
   })
 
@@ -78,7 +79,9 @@ program
   .argument('[lp-id]', 'LP ID', config.themeId)
   .option('-w, --watch', 'watch files')
   .action(async (lpId, options) => {
-    await lpSync(config.lpDir, lpId)
+    const lpDir = config.lpDir 
+    if(!lpDir) throw new Error('Usin lp command requied lpId and lpDir config.')
+    await lpSync(lpDir, lpId)
     
     if(options.watch){
       const wss = new WebSocketServer({
@@ -88,11 +91,11 @@ program
         console.log(`connected ${req.socket.remoteAddress}`)
       })
       
-      const watcher = chokidar.watch(config.lpDir, {cwd: config.lpDir, ignoreInitial: true})
+      const watcher = chokidar.watch(lpDir, {cwd: lpDir, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
           case 'change':
-            lpSync(config.lpDir, lpId)
+            lpSync(lpDir, lpId)
             console.log(`sync`)
             break
         }

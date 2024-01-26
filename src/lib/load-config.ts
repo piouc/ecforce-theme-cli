@@ -11,8 +11,8 @@ type Config = {
   baseUrl: string
   themeId: string
   themeDir: string
-  lpId: string
-  lpDir: string
+  lpId?: string
+  lpDir?: string
 }
 
 const rootDir = await packageDirectory()
@@ -45,6 +45,10 @@ if(validated.warning){
 
 const config: Config = validated.value
 config.themeDir = path.resolve(rootDir, config.themeDir)
-config.lpDir = path.resolve(rootDir, config.lpDir)
+
+if(config.lpDir){
+  config.lpDir = path.resolve(rootDir, config.lpDir)
+}
+
 
 export {config}
