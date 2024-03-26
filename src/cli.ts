@@ -68,19 +68,19 @@ program
 
 program
   .command('lp-pull')
-  .argument('[lp-id]', 'LP ID', config.themeId)
+  .argument('[lp-id]', 'LP ID', config.lpId)
   .action(async (lpId) => {
-    if(!config.lpDir) throw new Error('Usin lp command requied lpId and lpDir config.')
+    if(!config.lpDir || !lpId) throw new Error('Usin lp command requied lpId and lpDir config.')
     await lpPull(config.lpDir, lpId)
   })
 
 program
   .command('lp-sync')
-  .argument('[lp-id]', 'LP ID', config.themeId)
+  .argument('[lp-id]', 'LP ID', config.lpId)
   .option('-w, --watch', 'watch files')
   .action(async (lpId, options) => {
-    const lpDir = config.lpDir 
-    if(!lpDir) throw new Error('Usin lp command requied lpId and lpDir config.')
+    const lpDir = config.lpDir
+    if(!lpDir || !lpId) throw new Error('Usin lp command requied lpId and lpDir config.')
     await lpSync(lpDir, lpId)
     
     if(options.watch){
