@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import { Command } from '@commander-js/extra-typings'
-import { pull, sync, update, del, updateBinaryies, getPreviewUrl } from './lib/api.js'
+import { pull, sync, update, del, updateBinaries, getPreviewUrl } from './lib/api.js'
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
@@ -42,7 +42,7 @@ program
             if(['html', 'liquid', 'svg', 'js', 'json', 'css',].includes(parse(path).ext)){
               await update(path, await fsp.readFile(resolve(config.themeDir, path), 'utf8'))
             } else {
-              await updateBinaryies(config.themeDir, [resolve(config.themeDir, path)])
+              await updateBinaries(config.themeDir, [resolve(config.themeDir, path)])
             }
             console.log(`${type} ${path}`)
             break

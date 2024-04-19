@@ -71,7 +71,7 @@ export const lpSync = async (rootPath: string, lpId: string) => {
   console.log('upload')
   const r = await client({
     method: 'post',
-    url: `https://porelogy.com/admin/templates/${lpId}`,
+    url: `/admin/templates/${lpId}`,
     data: new URLSearchParams({
       ...data,
       utf8: '✓',

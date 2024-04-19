@@ -1,13 +1,13 @@
-import archiver from 'archiver';
-import { client, jar } from './client.js';
-import { config } from './load-config.js';
-import querystring from 'node:querystring';
+import archiver from 'archiver'
+import { client, jar } from './client.js'
+import { config } from './load-config.js'
+import querystring from 'node:querystring'
 import { RawData, WebSocket } from 'ws'
 import unzipStream from 'unzip-stream'
 import { IncomingMessage } from 'node:http'
 import fsp from 'fs/promises'
 import { relative } from 'node:path'
-import FormData from 'form-data';
+import FormData from 'form-data'
 
 export const sync = async (rootPath: string) => {
   const archive = archiver('zip')
@@ -55,7 +55,7 @@ const waitForMessage = <T extends Message>(ws: WebSocket, predicate: (data: T) =
 }
 const waitForNotification = async (ws: WebSocket, predicate: (data: NewNotificationMessage[1]) => unknown) => {
   const message = await waitForMessage<NewNotificationMessage>(ws, (data => {
-    const [type, payload] = data
+    const {type, payload} = data
     return type === 'new_notification' && predicate(payload)
   }))
   return message[1]
@@ -75,7 +75,7 @@ export const pull = async (rootPath: string, themeId: string) => {
     }
   })
   await waitOpen(ws)
-  ws.send(JSON.stringify(["websocket_rails.subscribe",{"channel":"global"},{"id":65536 * (1 + Math.random()) | 0}]))
+  ws.send(JSON.stringify({command: "subscribe", "identifier": JSON.stringify({channel: 'EcForce::NotificationChannel', hostname: parse(config.baseUrl).hostname })}))
 
   client({
     method: 'post',
@@ -119,7 +119,7 @@ export const update = async (path: string, code: string) => {
   })
 }
 
-export const updateBinaryies = async (rootPath: string, paths: string[]) => {
+export const updateBinaries = async (rootPath: string, paths: string[]) => {
   const archive = archiver('zip')
   const formData = new FormData()
   paths.forEach(path => archive.file(path, {name: relative(rootPath, path)}))
