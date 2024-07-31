@@ -1,5 +1,5 @@
 import { client } from './client.js'
-import { config } from './load-config.js'
+import { config, LpProfile } from './load-config.js'
 import { decode } from 'html-entities'
 import fsp from 'fs/promises'
 import { join } from 'path'
@@ -43,35 +43,35 @@ const getToken = (html: string) => {
   return html.match(/(?<=<input type="hidden" name="authenticity_token" value=")[^"]*?(?=" \/>)/)?.[0]
 }
 
-export const lpPull = async (rootPath: string, lpId: string) => {
+export const lpPull = async (profile: LpProfile) => {
   const res = await client<string>({
     method: 'get',
-    url: `/admin/templates/${config.lpId}/edit`,
+    url: `/admin/templates/${profile.lpId}/edit`,
     responseType: 'text'
   })
   getValue(res.data, 'template[content]')
-  await fsp.mkdir(rootPath, {recursive: true})
+  await fsp.mkdir(profile.dir, {recursive: true})
   for(const {name, filename} of fileMap){
-    await fsp.writeFile(join(rootPath, filename), getValue(res.data, name) ?? '')
+    await fsp.writeFile(join(profile.dir, filename), getValue(res.data, name) ?? '')
   }
 }
 
-export const lpSync = async (rootPath: string, lpId: string) => {
+export const lpSync = async (profile: LpProfile) => {
   const res = await client<string>({
     method: 'get',
-    url: `/admin/templates/${config.lpId}/edit`,
+    url: `/admin/templates/${profile.lpId}/edit`,
     responseType: 'text'
   })
 
   const data = Object.fromEntries(await Promise.all(fileMap.map(async ({name, filename}) => {
-    return [name, await fsp.readFile(join(rootPath, filename), 'utf8')]
+    return [name, await fsp.readFile(join(profile.dir, filename), 'utf8')]
   })))
   const token = getToken(res.data)
   if(!token) throw new Error('Can not get authenticity token.')
   console.log('upload')
-  const r = await client({
+  await client({
     method: 'post',
-    url: `/admin/templates/${lpId}`,
+    url: `/admin/templates/${profile.lpId}`,
     data: new URLSearchParams({
       ...data,
       utf8: '✓',
@@ -79,6 +79,6 @@ export const lpSync = async (rootPath: string, lpId: string) => {
       authenticity_token: token,
     }).toString()
   })
-  console.log(lpId)
+  console.log(profile.lpId)
   console.log('complete')
 }
