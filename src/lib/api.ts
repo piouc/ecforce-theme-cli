@@ -22,12 +22,12 @@ export const sync = async (profile: ThemeProfile) => {
   formData.append('file', archive, `${profile.themeId}.zip`)
   archive.finalize()
 
-  await update(profile, 'ec_force/config/settings_schema.json', await getSettingsSchema(profile))
   await client({
     method: 'post',
     url: `/admin/themes/${profile.themeId}/theme_zip_upload`,
     data: formData
   })
+  await update(profile, 'ec_force/config/settings_schema.json', await getSettingsSchema(profile))
 }
 
 const waitClose = (stream: NodeJS.ReadableStream | NodeJS.WritableStream) => {
