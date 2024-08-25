@@ -14,7 +14,21 @@ Put `ecforce.config.json` to project root.
   "username": "USERNAME",
   "password": "PASSWORD",
   "baseUrl": "https://HOSTNAME/",
-  "themeId": "THEME_ID"
+  "profiles": [
+    {
+      "type": "theme",
+      "name": "THEME_NAME",
+      "branch": "BRANCH_NAME",
+      "themeId": "THEME_ID",
+      "dir": "DIRECTORY_PATH"
+    },
+    {
+      "type": "lp",
+      "lpId": "LP_ID",
+      "branch": "BRANCH_NAME",
+      "dir": "DIRECTORY_PATH"
+    }
+  ]
 }
 ```
 
@@ -30,12 +44,12 @@ watch files
 
 ### Pull
 ```bash
-npx ecforce-theme-cli pull [theme id]
+npx ecforce-theme-cli pull
 ```
 
 ### Preview
 ```bash
-npx ecforce-theme-cli preview [theme id]
+npx ecforce-theme-cli
 ```
 
 ### Auto reload script
