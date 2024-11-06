@@ -8,9 +8,8 @@ export const jar = new CookieJar()
 
 export const client = axios.create({
   baseURL: config.baseUrl,
-  auth: {
-    username: config.basicAuthUsername,
-    password: config.basicAuthPassword
+  headers: {
+    Authorization: 'Basic ' + Buffer.from(`${config.basicAuthUsername}:${config.basicAuthPassword}`).toString('base64')
   },
   jar
 })
