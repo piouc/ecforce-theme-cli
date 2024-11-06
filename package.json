@@ -36,7 +36,6 @@
     "chokidar": "^4.0.1",
     "commander": "^12.1.0",
     "debounce": "^2.2.0",
-    "form-data": "^4.0.1",
     "html-entities": "^2.5.2",
     "joi": "^17.13.3",
     "open": "^10.1.0",

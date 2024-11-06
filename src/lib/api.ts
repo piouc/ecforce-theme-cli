@@ -2,12 +2,11 @@ import archiver from 'archiver'
 import { client, jar } from './client.js'
 import { config, ThemeProfile } from './load-config.js'
 import querystring from 'node:querystring'
-import { RawData, WebSocket } from 'ws'
+import { WebSocket } from 'ws'
 import unzipStream from 'unzip-stream'
 import { IncomingMessage } from 'node:http'
 import fsp from 'fs/promises'
 import { join, relative } from 'node:path'
-import FormData from 'form-data'
 
 export const getSettingsSchema = async (profile: ThemeProfile) => {
   const schema = JSON.parse(await fsp.readFile(join(profile.dir, 'ec_force/config/settings_schema.json'), 'utf8'))
@@ -19,8 +18,9 @@ export const sync = async (profile: ThemeProfile) => {
   const archive = archiver('zip')
   const formData = new FormData()
   archive.directory(profile.dir, false)
-  formData.append('file', archive, `${profile.themeId}.zip`)
+
   archive.finalize()
+  formData.append('file', await new Response(archive).blob(), `${profile.themeId}.zip`)
 
   await client({
     method: 'post',

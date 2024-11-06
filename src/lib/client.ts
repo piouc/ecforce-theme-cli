@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { config } from './load-config.js';
 import { auth } from './auth.js';
 import { CookieJar } from 'tough-cookie';
@@ -14,11 +14,13 @@ export const client = axios.create({
   jar
 })
 
-wrapper(client)
-await auth(client)
-
-client.interceptors.response.use(null, err => {
+client.interceptors.response.use(res => {
+  return res
+}, err => {
   if(err instanceof AxiosError){
     console.error(err)
   }
 })
+
+wrapper(client)
+await auth(client)
