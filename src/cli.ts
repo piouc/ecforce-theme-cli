@@ -5,12 +5,13 @@ import { pull, sync, update, del, updateBinaries, getPreviewUrl, getSettingsSche
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
-import { parse, resolve } from 'path'
+import path, { parse, resolve } from 'path'
 import { config } from './lib/load-config.js'
 import open from 'open'
 import { lpPull, lpSync } from './lib/lp-api.js'
 import { getCurrentBranchName, getLpProfile, getThemeProfile } from './lib/utils.js'
 import pLimit from 'p-limit'
+import pDebounce from 'p-debounce'
 
 const program = new Command()
 program
@@ -40,6 +41,11 @@ program
       wss.on('connection', (ws, req) => {
         console.log(`connected ${req.socket.remoteAddress}`)
       })
+
+      const updateQueue: string[] = []
+      const debouncedUpdateBinaries = pDebounce(async () => {
+        await updateBinaries(profile, updateQueue.splice(0))
+      }, 500)
       
       const watcher = chokidar.watch(profile.dir, {cwd: profile.dir, ignoreInitial: true})
       watcher.on('all', async (type, path) => limit(async () => {
@@ -53,7 +59,8 @@ program
                 await update(profile, path, await fsp.readFile(resolve(profile.dir, path), 'utf8'))
               }
             } else {
-              await updateBinaries(profile, [resolve(profile.dir, path)])
+              updateQueue.push(resolve(profile.dir, path))
+              await debouncedUpdateBinaries()
             }
             console.log(`${type} ${path}`)
             break

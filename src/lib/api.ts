@@ -104,8 +104,8 @@ export const updateBinaries = async (profile: ThemeProfile, paths: string[]) => 
   const formData = new FormData()
   paths.forEach(path => archive.file(path, {name: relative(profile.dir, path)}))
 
-  formData.append('file', archive, `${profile.themeId}.zip`)
   archive.finalize()
+  formData.append('file', await new Response(archive).blob(), `${profile.themeId}.zip`)
 
   await client({
     method: 'post',
