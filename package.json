@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsc && chmod +x dist/cli.js"
+    "build": "npm run clean && tsc && chmod +x dist/cli.js",
+    "prepublish": "npm run build"
   },
   "bin": {
     "ecforce-theme": "dist/cli.js"
