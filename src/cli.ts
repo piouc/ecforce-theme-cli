@@ -60,7 +60,7 @@ program
               }
             } else {
               updateQueue.push(resolve(profile.dir, path))
-              await debouncedUpdateBinaries()
+              debouncedUpdateBinaries()
             }
             console.log(`${type} ${path}`)
             break
