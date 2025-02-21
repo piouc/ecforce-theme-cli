@@ -48,24 +48,25 @@ const configSchema = Joi.object<Config>({
   profiles: Joi.array().items(Joi.alternatives().try(themeProfileSchema, lpProfileSchema)).required(),
 });
 
-const rootDir = await packageDirectory()
-if(!rootDir) throw new Error('Couldn\'t find ecforce.config.json')
+export const loadConfig = async (configPath: string) => {
+  const rootDir = await packageDirectory()
+  if(!rootDir) throw new Error('Couldn\'t find package root.')
 
-const configPath = path.join(rootDir, 'ecforce.config.json')
+  const resolvedConfigPath = path.resolve(rootDir, configPath)
 
-const configJson = await fsp.readFile(configPath, 'utf8')
+  const configJson = await fsp.readFile(resolvedConfigPath, 'utf8')
 
-const validated = configSchema.validate(JSON.parse(configJson))
+  const validated = configSchema.validate(JSON.parse(configJson))
 
-if(validated.error){
-  throw validated.error
+  if(validated.error){
+    throw validated.error
+  }
+  if(validated.warning){
+    console.warn(validated.warning)
+  }
+
+  const config: Config = validated.value
+  config.profiles = config.profiles.map(profile => ({...profile, dir: path.resolve(rootDir, profile.dir)}))
+
+  return config
 }
-if(validated.warning){
-  console.warn(validated.warning)
-}
-
-const config: Config = validated.value
-config.profiles = config.profiles.map(profile => ({...profile, dir: path.resolve(rootDir, profile.dir)}))
-
-
-export {config}

@@ -1,13 +1,13 @@
 import { AxiosInstance, AxiosError } from 'axios'
-import { config } from './load-config.js'
 import querystring from 'querystring'
+import { Config } from './load-config'
 
-export const auth = async (client: AxiosInstance) => {
-  await signIn(client)
+export const auth = async (client: AxiosInstance, config: Config) => {
+  await signIn(client, config)
   return client
 }
 
-const signIn = async (client: AxiosInstance) => {
+const signIn = async (client: AxiosInstance, config: Config) => {
   const signInPageHtml = await client<string>({
     method: 'get',
     url: '/admins/sign_in'

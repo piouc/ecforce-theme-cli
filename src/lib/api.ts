@@ -1,6 +1,6 @@
 import archiver from 'archiver'
-import { client, jar } from './client.js'
-import { config, ThemeProfile } from './load-config.js'
+import { Client } from './create-client.js'
+import { loadConfig, ThemeProfile } from './load-config.js'
 import querystring from 'node:querystring'
 import { WebSocket } from 'ws'
 import unzipStream from 'unzip-stream'
@@ -14,7 +14,7 @@ export const getSettingsSchema = async (profile: ThemeProfile) => {
   return JSON.stringify(schema, null, '  ')
 }
 
-export const sync = async (profile: ThemeProfile) => {
+export const sync = async (client: Client, profile: ThemeProfile) => {
   const archive = archiver('zip')
   const formData = new FormData()
   archive.directory(profile.dir, false)
@@ -27,7 +27,7 @@ export const sync = async (profile: ThemeProfile) => {
     url: `/admin/themes/${profile.themeId}/theme_zip_upload`,
     data: formData
   })
-  await update(profile, 'ec_force/config/settings_schema.json', await getSettingsSchema(profile))
+  await update(client, profile, 'ec_force/config/settings_schema.json', await getSettingsSchema(profile))
 }
 
 const waitClose = (stream: NodeJS.ReadableStream | NodeJS.WritableStream) => {
@@ -36,12 +36,12 @@ const waitClose = (stream: NodeJS.ReadableStream | NodeJS.WritableStream) => {
   })
 }
 
-const getThemeZipUrl = (profile: ThemeProfile) => new Promise<string>(async (resolve, reject) => {
-  const {host} = new URL(config.baseUrl)
+const getThemeZipUrl = (client: Client, profile: ThemeProfile, baseUrl: string) => new Promise<string>(async (resolve, reject) => {
+  const {host} = new URL(baseUrl)
   const wsUrl = `wss://${host}/websocket`
   const ws = new WebSocket(wsUrl, {
     headers: {
-      'cookie': await jar.getCookieString(wsUrl)
+      'cookie': await client.jar.getCookieString(wsUrl)
     }
   })
   let url:string | null = null
@@ -75,8 +75,8 @@ const getThemeZipUrl = (profile: ThemeProfile) => new Promise<string>(async (res
   })
 })
 
-export const pull = async (profile: ThemeProfile) => {
-  const url = await getThemeZipUrl(profile)
+export const pull = async (client: Client, profile: ThemeProfile, baseUrl: string) => {
+  const url = await getThemeZipUrl(client, profile, baseUrl)
   const downloadRes = await client<IncomingMessage>({
     url: url,
     responseType: 'stream'
@@ -88,7 +88,7 @@ export const pull = async (profile: ThemeProfile) => {
   console.log('complete')
 }
 
-export const update = async (profile: ThemeProfile, path: string, code: string) => {
+export const update = async (client: Client, profile: ThemeProfile, path: string, code: string) => {
   await client({
     method: 'put',
     url: `/admin/themes/${profile.themeId}/file/${path.replace(/^\//, '')}`,
@@ -99,7 +99,7 @@ export const update = async (profile: ThemeProfile, path: string, code: string) 
   })
 }
 
-export const updateBinaries = async (profile: ThemeProfile, paths: string[]) => {
+export const updateBinaries = async (client: Client, profile: ThemeProfile, paths: string[]) => {
   const archive = archiver('zip')
   const formData = new FormData()
   paths.forEach(path => archive.file(path, {name: relative(profile.dir, path)}))
@@ -114,7 +114,7 @@ export const updateBinaries = async (profile: ThemeProfile, paths: string[]) => 
   })
 }
 
-export const del = async (profile: ThemeProfile, path: string) => {
+export const del = async (client: Client, profile: ThemeProfile, path: string) => {
   await client({
     method: 'put',
     url: `/admin/themes/${profile.themeId}/delete_theme_file`,
@@ -124,7 +124,7 @@ export const del = async (profile: ThemeProfile, path: string) => {
   })
 }
 
-export const getPreviewUrl = async (profile: ThemeProfile) => {
+export const getPreviewUrl = async (client: Client, profile: ThemeProfile, baseUrl: string) => {
   const res = await client<{'return_url': string}>({
     method: 'post',
     url: `/admin/previews`,
@@ -133,5 +133,5 @@ export const getPreviewUrl = async (profile: ThemeProfile) => {
       'source_type': 'Theme'
     })
   })
-  return new URL(res.data.return_url, config.baseUrl).href
+  return new URL(res.data.return_url, baseUrl).href
 }

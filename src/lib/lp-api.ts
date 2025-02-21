@@ -1,5 +1,5 @@
-import { client } from './client.js'
-import { config, LpProfile } from './load-config.js'
+import { Client, createClient } from './create-client.js'
+import { LpProfile } from './load-config.js'
 import { decode } from 'html-entities'
 import fsp from 'fs/promises'
 import { join } from 'path'
@@ -43,7 +43,7 @@ const getToken = (html: string) => {
   return html.match(/(?<=<input type="hidden" name="authenticity_token" value=")[^"]*?(?=" \/>)/)?.[0]
 }
 
-export const lpPull = async (profile: LpProfile) => {
+export const lpPull = async (client: Client, profile: LpProfile) => {
   const res = await client<string>({
     method: 'get',
     url: `/admin/templates/${profile.lpId}/edit`,
@@ -56,7 +56,7 @@ export const lpPull = async (profile: LpProfile) => {
   }
 }
 
-export const lpSync = async (profile: LpProfile) => {
+export const lpSync = async (client: Client, profile: LpProfile) => {
   const res = await client<string>({
     method: 'get',
     url: `/admin/templates/${profile.lpId}/edit`,
