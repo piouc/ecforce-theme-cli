@@ -14,14 +14,17 @@ import pLimit from 'p-limit'
 import pDebounce from 'p-debounce'
 import { createClient } from './lib/create-client.js'
 
-type GlobalOptions = {
-  config: string
-}
-
 const program = new Command()
   .option('-c, --config <path>', 'config file', 'ecforce.config.json')
 
-const config = await loadConfig(program.opts().config)
+const opts = new Command()
+  .helpOption(false)
+  .allowUnknownOption()
+  .arguments('[args...]')
+  .option('-c, --config <path>', 'config file', 'ecforce.config.json')
+  .parse(process.argv)
+  .opts()
+const config = await loadConfig(opts.config)
 const client = await createClient(config)
 const currentBranchName = await getCurrentBranchName()
 
@@ -29,7 +32,7 @@ program
   .command('pull')
   .action(async () => {
     const profile = getThemeProfile(config, currentBranchName)
-    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
     await pull(client, profile, config.baseUrl)
   })
 
@@ -38,7 +41,7 @@ program
   .option('-w, --watch', 'watch files')
   .action(async (options) => {
     const profile = getThemeProfile(config, currentBranchName)
-    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
 
     console.log('sync: uploading zip')
     await sync(client, profile)
@@ -91,7 +94,7 @@ program
   .command('preview')
   .action(async () => {
     const profile = getThemeProfile(config, currentBranchName)
-    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
     const url = await getPreviewUrl(client, profile, config.baseUrl)
     await open(url)
   })
@@ -100,7 +103,7 @@ program
   .command('lp-pull')
   .action(async () => {
     const profile = getLpProfile(config, currentBranchName)
-    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
     await lpPull(client, profile)
   })
 
@@ -109,7 +112,7 @@ program
   .option('-w, --watch', 'watch files')
   .action(async (options) => {
     const profile = getLpProfile(config, currentBranchName)
-    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
       
     await lpSync(client, profile)
     
