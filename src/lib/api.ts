@@ -1,6 +1,6 @@
 import archiver from 'archiver'
 import { Client } from './create-client.js'
-import { loadConfig, ThemeProfile } from './load-config.js'
+import { ThemeProfile } from './load-config.js'
 import querystring from 'node:querystring'
 import { WebSocket } from 'ws'
 import unzipStream from 'unzip-stream'

@@ -1,4 +1,3 @@
-import { profile } from 'console'
 import { Config, LpProfile, ThemeProfile } from './load-config'
 import { exec } from 'child_process'
 

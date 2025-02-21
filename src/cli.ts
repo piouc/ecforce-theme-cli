@@ -5,7 +5,7 @@ import { pull, sync, update, del, updateBinaries, getPreviewUrl, getSettingsSche
 import { WebSocketServer } from 'ws'
 import chokidar from 'chokidar'
 import fsp from 'fs/promises'
-import path, { parse, resolve } from 'path'
+import { parse, resolve } from 'path'
 import { loadConfig } from './lib/load-config.js'
 import open from 'open'
 import { lpPull, lpSync } from './lib/lp-api.js'

@@ -1,4 +1,4 @@
-import { Client, createClient } from './create-client.js'
+import { Client } from './create-client.js'
 import { LpProfile } from './load-config.js'
 import { decode } from 'html-entities'
 import fsp from 'fs/promises'
