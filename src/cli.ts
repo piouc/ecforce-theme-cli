@@ -23,12 +23,13 @@ const program = new Command()
 
 const config = await loadConfig(program.opts().config)
 const client = await createClient(config)
+const currentBranchName = await getCurrentBranchName()
 
 program
   .command('pull')
   .action(async () => {
-    const profile = getThemeProfile(config, await getCurrentBranchName())
-    if(!profile) throw new Error('')
+    const profile = getThemeProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
     await pull(client, profile, config.baseUrl)
   })
 
@@ -36,8 +37,8 @@ program
   .command('sync')
   .option('-w, --watch', 'watch files')
   .action(async (options) => {
-    const profile = getThemeProfile(config, await getCurrentBranchName())
-    if(!profile) throw new Error('')
+    const profile = getThemeProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
 
     console.log('sync: uploading zip')
     await sync(client, profile)
@@ -89,8 +90,8 @@ program
 program
   .command('preview')
   .action(async () => {
-    const profile = getThemeProfile(config, await getCurrentBranchName())
-    if(!profile) throw new Error('')
+    const profile = getThemeProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
     const url = await getPreviewUrl(client, profile, config.baseUrl)
     await open(url)
   })
@@ -98,8 +99,8 @@ program
 program
   .command('lp-pull')
   .action(async () => {
-    const profile = getLpProfile(config, await getCurrentBranchName())
-    if(!profile) throw new Error('')
+    const profile = getLpProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
     await lpPull(client, profile)
   })
 
@@ -107,8 +108,8 @@ program
   .command('lp-sync')
   .option('-w, --watch', 'watch files')
   .action(async (options) => {
-    const profile = getLpProfile(config, await getCurrentBranchName())
-    if(!profile) throw new Error('')
+    const profile = getLpProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName}`)
       
     await lpSync(client, profile)
     
