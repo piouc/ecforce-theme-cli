@@ -37,6 +37,7 @@ export type Config = {
   username: string
   password: string
   baseUrl: string
+  authType?: 'legacy' | 'ecforceAccount'
   profiles: (ThemeProfile | LpProfile)[]
 }
 const configSchema = Joi.object<Config>({
@@ -45,6 +46,7 @@ const configSchema = Joi.object<Config>({
   username: Joi.string().required(),
   password: Joi.string().required(),
   baseUrl: Joi.string().uri().required(),
+  authType: Joi.string().valid('legacy', 'ecforceAccount').optional().default('legacy'),
   profiles: Joi.array().items(Joi.alternatives().try(themeProfileSchema, lpProfileSchema)).required(),
 });
 

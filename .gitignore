@@ -1,3 +1,4 @@
 /node_modules
 /dist
 /ecforce.config.json
+/ecforce.credentials.json

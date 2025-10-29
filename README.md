@@ -14,6 +14,7 @@ Put `ecforce.config.json` to project root.
   "username": "USERNAME",
   "password": "PASSWORD",
   "baseUrl": "https://HOSTNAME/",
+  "authType": "legacy",
   "profiles": [
     {
       "type": "theme",
@@ -31,6 +32,11 @@ Put `ecforce.config.json` to project root.
   ]
 }
 ```
+
+#### Authentication Types
+- `authType`: (optional, default: `"legacy"`)
+  - `"legacy"`: Traditional admin sign-in authentication
+  - `"ecforceAccount"`: ecforce Account authentication (uses Puppeteer for login, credentials cached in `ecforce.credentials.json`)
 
 ## Commands
 

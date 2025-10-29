@@ -25,7 +25,7 @@ const opts = new Command()
   .parse(process.argv)
   .opts()
 const config = await loadConfig(opts.config)
-const client = await createClient(config)
+const client = await createClient(config, opts.config)
 const currentBranchName = await getCurrentBranchName()
 
 program
@@ -113,9 +113,9 @@ program
   .action(async (options) => {
     const profile = getLpProfile(config, currentBranchName)
     if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
-      
+
     await lpSync(client, profile)
-    
+
     if(options.watch){
       const wss = new WebSocketServer({
         port: 8080
@@ -123,7 +123,7 @@ program
       wss.on('connection', (ws, req) => {
         console.log(`connected ${req.socket.remoteAddress}`)
       })
-      
+
       const watcher = chokidar.watch(profile.dir, {cwd: profile.dir, ignoreInitial: true})
       watcher.on('all', async (type, path, status) => {
         switch(type){
@@ -136,6 +136,54 @@ program
           ws.send(JSON.stringify({type: 'update'}))
         })
       })
+    }
+  })
+
+program
+  .command('auth')
+  .description('Authenticate and verify admin access')
+  .action(async () => {
+    console.log('Authentication process...')
+    console.log(`Auth type: ${config.authType || 'legacy'}`)
+
+    // Authentication is already done when creating the client
+    // Now verify admin access
+    console.log('Verifying admin access...')
+    try {
+      const response = await client.get('/admin', {
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 200 && status < 400
+      })
+
+      // Check if redirected to login page
+      if (response.status >= 300 && response.status < 400) {
+        const redirectLocation = response.headers['location']
+        if (redirectLocation && redirectLocation.includes('/admins/sign_in')) {
+          console.error('Authentication failed: Redirected to login page')
+          throw new Error('Authentication failed: Session is invalid or expired')
+        }
+      }
+
+      // Check if response is successful
+      if (response.status >= 200 && response.status < 300) {
+        console.log('Successfully authenticated and verified admin access')
+        console.log(`Status: ${response.status} ${response.statusText}`)
+        console.log(`Admin page URL: ${config.baseUrl}admin`)
+
+        // Check if response contains expected admin page content
+        if (typeof response.data === 'string' && response.data.includes('admin')) {
+          console.log('Admin page content verified')
+        }
+      } else {
+        console.error('Unexpected response status:', response.status)
+        throw new Error(`Unexpected status: ${response.status}`)
+      }
+    } catch (err) {
+      console.error('Failed to verify admin access')
+      if (err instanceof Error) {
+        console.error('Error:', err.message)
+      }
+      throw err
     }
   })
 

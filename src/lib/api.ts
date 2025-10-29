@@ -20,7 +20,7 @@ export const sync = async (client: Client, profile: ThemeProfile) => {
   archive.directory(profile.dir, false)
 
   archive.finalize()
-  formData.append('file', await new Response(archive).blob(), `${profile.themeId}.zip`)
+  formData.append('file', await new Response(archive as any).blob(), `${profile.themeId}.zip`)
 
   await client({
     method: 'post',
@@ -105,7 +105,7 @@ export const updateBinaries = async (client: Client, profile: ThemeProfile, path
   paths.forEach(path => archive.file(path, {name: relative(profile.dir, path)}))
 
   archive.finalize()
-  formData.append('file', await new Response(archive).blob(), `${profile.themeId}.zip`)
+  formData.append('file', await new Response(archive as any).blob(), `${profile.themeId}.zip`)
 
   await client({
     method: 'post',

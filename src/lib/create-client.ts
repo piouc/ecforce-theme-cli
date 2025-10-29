@@ -7,7 +7,7 @@ import { errorLogger } from 'axios-logger'
 
 export type Client = AxiosInstance & {jar: CookieJar}
 
-export const createClient = async (config: Config): Promise<Client> => {
+export const createClient = async (config: Config, configPath: string): Promise<Client> => {
   const jar = new CookieJar()
 
   const client = axios.create({
@@ -17,14 +17,16 @@ export const createClient = async (config: Config): Promise<Client> => {
     },
     jar: jar
   })
-  
+
   client.interceptors.response.use(res => {
     return res
   }, errorLogger)
-  
-  wrapper(client)
-  await auth(client, config)
 
-  return Object.assign(client, {jar})
+  wrapper(client)
+
+  const clientWithJar = Object.assign(client, {jar})
+  await auth(clientWithJar, config, configPath)
+
+  return clientWithJar
 }
 
