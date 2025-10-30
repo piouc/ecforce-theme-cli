@@ -130,7 +130,7 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
     await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 })
 
     console.log('Waiting for div elements to click...')
-    const divSelector = 'div:has(> svg):has(> h2)'
+    const divSelector = 'div:has(> svg):has(> h1)'
 
     await page.waitForSelector(divSelector, { timeout: 10000 })
     console.log('Found div elements, clicking all...')
@@ -139,7 +139,7 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
     console.log(`Found ${divElements.length} div elements to click`)
 
     if (divElements.length === 0) {
-      throw new Error('No div elements found matching selector: div:has(> svg):has(> h2)')
+      throw new Error('No div elements found matching selector: div:has(> svg):has(> h1)')
     }
 
     for (let i = 0; i < divElements.length; i++) {
