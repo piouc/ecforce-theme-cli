@@ -92,7 +92,20 @@ const signInLegacy = async (client: Client, config: Config, configPath: string) 
 
     // Verify the credentials are still valid
     try {
-      await client.get('/admin')
+      const verifyResponse = await client.get('/admin', {
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 200 && status < 400
+      })
+
+      // Check if redirected to login page
+      if (verifyResponse.status >= 300 && verifyResponse.status < 400) {
+        const redirectLocation = verifyResponse.headers['location']
+        if (redirectLocation && redirectLocation.includes('/admins/sign_in')) {
+          console.log('Cached credentials expired, re-authenticating...')
+          throw new Error('Credentials expired')
+        }
+      }
+
       console.log('Cached credentials are valid')
       return
     } catch (err) {
