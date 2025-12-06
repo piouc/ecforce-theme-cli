@@ -9,7 +9,7 @@ import { parse, resolve } from 'path'
 import { loadConfig } from './lib/load-config.js'
 import open from 'open'
 import { lpPull, lpSync } from './lib/lp-api.js'
-import { getCurrentBranchName, getLpProfile, getThemeProfile } from './lib/utils.js'
+import { getCurrentBranchName, getLpProfile, getThemeProfile, formatAxiosError } from './lib/utils.js'
 import pLimit from 'p-limit'
 import pDebounce from 'p-debounce'
 import { createClient } from './lib/create-client.js'
@@ -63,29 +63,33 @@ program
       
       const watcher = chokidar.watch(profile.dir, {cwd: profile.dir, ignoreInitial: true})
       watcher.on('all', async (type, path) => limit(async () => {
-        switch(type){
-          case 'add':
-          case 'change':
-            if(['html', 'liquid', 'svg', 'js', 'json', 'css'].includes(parse(path).ext)){
-              if(path === 'ec_force/config/settings_schema.json'){
-                await update(client, profile, path, await getSettingsSchema(profile))
+        try {
+          switch(type){
+            case 'add':
+            case 'change':
+              if(['html', 'liquid', 'svg', 'js', 'json', 'css'].includes(parse(path).ext)){
+                if(path === 'ec_force/config/settings_schema.json'){
+                  await update(client, profile, path, await getSettingsSchema(profile))
+                } else {
+                  await update(client, profile, path, await fsp.readFile(resolve(profile.dir, path), 'utf8'))
+                }
               } else {
-                await update(client, profile, path, await fsp.readFile(resolve(profile.dir, path), 'utf8'))
+                updateQueue.push(resolve(profile.dir, path))
+                debouncedUpdateBinaries()
               }
-            } else {
-              updateQueue.push(resolve(profile.dir, path))
-              debouncedUpdateBinaries()
-            }
-            console.log(`${type} ${path}`)
-            break
-          case 'unlink':
-            await del(client, profile, path)
-            console.log(`delete ${path}`)
-            break
+              console.log(`${type} ${path}`)
+              break
+            case 'unlink':
+              await del(client, profile, path)
+              console.log(`delete ${path}`)
+              break
+          }
+          wss.clients.forEach(ws => {
+            ws.send(JSON.stringify({type: 'update'}))
+          })
+        } catch (err) {
+          console.error(formatAxiosError(err))
         }
-        wss.clients.forEach(ws => {
-          ws.send(JSON.stringify({type: 'update'}))
-        })
       }))
     }
   })
@@ -125,16 +129,20 @@ program
       })
 
       const watcher = chokidar.watch(profile.dir, {cwd: profile.dir, ignoreInitial: true})
-      watcher.on('all', async (type, path, status) => {
-        switch(type){
-          case 'change':
-            lpSync(client, profile)
-            console.log(`sync`)
-            break
+      watcher.on('all', async (type) => {
+        try {
+          switch(type){
+            case 'change':
+              await lpSync(client, profile)
+              console.log(`sync`)
+              break
+          }
+          wss.clients.forEach(ws => {
+            ws.send(JSON.stringify({type: 'update'}))
+          })
+        } catch (err) {
+          console.error(formatAxiosError(err))
         }
-        wss.clients.forEach(ws => {
-          ws.send(JSON.stringify({type: 'update'}))
-        })
       })
     }
   })

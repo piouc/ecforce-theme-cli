@@ -1,5 +1,6 @@
 import { Config, LpProfile, ThemeProfile } from './load-config'
 import { exec } from 'child_process'
+import { AxiosError } from 'axios'
 
 export const getThemeProfile = (config: Config, branch: string): ThemeProfile | undefined => {
   return config.profiles.filter(profile => profile.type === 'theme').find(profile => profile.branch === branch)
@@ -23,4 +24,14 @@ export const getCurrentBranchName = () => {
       resolve(stdout.trim())
     })
   })
+}
+
+export const formatAxiosError = (err: unknown): string => {
+  if (err instanceof AxiosError) {
+    return `AxiosError: ${err.message} (${err.config?.method?.toUpperCase()} ${err.config?.url}) status: ${err.response?.status}`
+  } else if (err instanceof Error) {
+    return `Error: ${err.message}`
+  } else {
+    return String(err)
+  }
 }
