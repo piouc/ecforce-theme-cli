@@ -72,7 +72,6 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
     const pageContent = await page.content()
 
     if (pageUrl.includes('mfa-email-challenge') || pageContent.includes('sent an email with your code')) {
-      // Email 2FA flow
       console.log('Email verification required')
 
       const code = await promptCode('Enter the verification code sent to your email: ')
@@ -85,7 +84,6 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
       console.log('Submitting verification code...')
       await page.keyboard.press('Enter')
     } else {
-      // OTP (Google Authenticator) flow
       if (pageContent.includes('fingerprint') || pageContent.includes('face recognition')) {
         console.log('Handling biometric authentication screen...')
 

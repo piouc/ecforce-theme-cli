@@ -154,8 +154,6 @@ program
     console.log('Authentication process...')
     console.log(`Auth type: ${config.authType || 'legacy'}`)
 
-    // Authentication is already done when creating the client
-    // Now verify admin access
     console.log('Verifying admin access...')
     try {
       const response = await client.get('/admin', {
@@ -163,7 +161,6 @@ program
         validateStatus: (status) => status >= 200 && status < 400
       })
 
-      // Check if redirected to login page
       if (response.status >= 300 && response.status < 400) {
         const redirectLocation = response.headers['location']
         if (redirectLocation && redirectLocation.includes('/admins/sign_in')) {
@@ -172,13 +169,11 @@ program
         }
       }
 
-      // Check if response is successful
       if (response.status >= 200 && response.status < 300) {
         console.log('Successfully authenticated and verified admin access')
         console.log(`Status: ${response.status} ${response.statusText}`)
         console.log(`Admin page URL: ${config.baseUrl}admin`)
 
-        // Check if response contains expected admin page content
         if (typeof response.data === 'string' && response.data.includes('admin')) {
           console.log('Admin page content verified')
         }

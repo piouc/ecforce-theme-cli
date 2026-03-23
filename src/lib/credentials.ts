@@ -22,7 +22,6 @@ export const loadCredentials = async (configPath: string): Promise<Credentials |
     const content = await fsp.readFile(credentialsPath, 'utf8')
     const credentials: Credentials = JSON.parse(content)
 
-    // Check if credentials are expired
     if (new Date(credentials.expiresAt) < new Date()) {
       console.log('Credentials expired')
       return null
@@ -30,7 +29,6 @@ export const loadCredentials = async (configPath: string): Promise<Credentials |
 
     return credentials
   } catch (err) {
-    // Credentials file doesn't exist or is invalid
     return null
   }
 }
@@ -50,11 +48,9 @@ export const getCredentialsPath = (configPath: string): string => {
 export const cookiesToCredentials = (cookies: Cookie[]): Credentials => {
   return {
     cookies: cookies.map(cookie => {
-      // Check if expires is a valid future date (not session cookie represented as past date)
       let expiresStr: string | undefined = undefined
       if (cookie.expires && cookie.expires !== 'Infinity') {
         const expiresDate = typeof cookie.expires === 'string' ? new Date(cookie.expires) : cookie.expires
-        // Only save expires if it's in the future (not a session cookie with 1969 date)
         if (expiresDate.getTime() > Date.now()) {
           expiresStr = expiresDate.toISOString()
         }
@@ -71,23 +67,19 @@ export const cookiesToCredentials = (cookies: Cookie[]): Credentials => {
         sameSite: cookie.sameSite
       }
     }),
-    // Set expiration to 7 days from now
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   }
 }
 
 export const credentialsToCookies = (credentials: Credentials): Cookie[] => {
   return credentials.cookies.map(cookie => {
-    // Check if expires is a valid future date (not session cookie represented as 1969)
     let expiresDate = cookie.expires ? new Date(cookie.expires) : undefined
     const isSessionCookie = expiresDate && expiresDate.getTime() < Date.now()
 
-    // If it's a session cookie (no expires or past date), set expires to credentials expiration
     if (!expiresDate || isSessionCookie) {
       expiresDate = new Date(credentials.expiresAt)
     }
 
-    // tough-cookie has issues with sameSite=None, so we convert it to undefined
     let sameSite = cookie.sameSite
     if (sameSite === 'None' || sameSite === 'none') {
       sameSite = undefined
