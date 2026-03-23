@@ -1,21 +1,32 @@
-import puppeteer, { Browser } from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import { Config } from './load-config.js'
 import { cookiesToCredentials, loadCredentials, saveCredentials } from './credentials.js'
 import { Cookie } from 'tough-cookie'
 import readline from 'readline'
 
-const promptOTP = (): Promise<string> => {
+const promptCode = (message: string): Promise<string> => {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
 
   return new Promise((resolve) => {
-    rl.question('Enter your OTP code from Google Authenticator: ', (answer) => {
+    rl.question(message, (answer) => {
       rl.close()
       resolve(answer.trim())
     })
   })
+}
+
+const checkRememberCheckbox = async (page: Page) => {
+  const checkboxes = await page.$$('input[type="checkbox"]')
+  for (const checkbox of checkboxes) {
+    const isChecked = await page.evaluate((el: HTMLInputElement) => el.checked, checkbox)
+    if (!isChecked) {
+      await checkbox.click()
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+  }
 }
 
 export const loginWithEcforceAccount = async (config: Config, configPath: string): Promise<Cookie[]> => {
@@ -57,73 +68,75 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
 
     await new Promise(resolve => setTimeout(resolve, 2000))
 
+    const pageUrl = page.url()
     const pageContent = await page.content()
 
-    if (pageContent.includes('fingerprint') || pageContent.includes('face recognition')) {
-      console.log('Handling biometric authentication screen...')
+    if (pageUrl.includes('mfa-email-challenge') || pageContent.includes('sent an email with your code')) {
+      // Email 2FA flow
+      console.log('Email verification required')
 
-      const rememberCheckbox = await page.$('input[type="checkbox"]')
-      if (rememberCheckbox) {
-        await rememberCheckbox.click()
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
+      const code = await promptCode('Enter the verification code sent to your email: ')
 
-      const buttons1 = await page.$$('button')
-      for (const button of buttons1) {
-        const text = await page.evaluate(el => el.textContent, button)
-        if (text?.includes('Continue')) {
-          await button.click()
-          break
-        }
-      }
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 })
+      await page.type('input[type="text"]', code)
 
-      const buttons2 = await page.$$('button')
-      for (const button of buttons2) {
-        const text = await page.evaluate(el => el.textContent, button)
-        if (text?.includes('Try another method')) {
-          await button.click()
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          break
-        }
-      }
+      await checkRememberCheckbox(page)
 
-      const buttons3 = await page.$$('button')
-      for (const button of buttons3) {
-        const text = await page.evaluate(el => el.textContent, button)
-        if (text?.includes('Google Authenticator') || text?.includes('Authenticator')) {
-          await button.click()
-          break
-        }
-      }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    const currentContent = await page.content()
-
-    if (currentContent.includes('one-time') || currentContent.includes('code')) {
-      console.log('OTP required')
-
-      const otp = await promptOTP()
-
-      await page.waitForSelector('input[type="text"], input[name="otp"]', { timeout: 10000 })
-      await page.type('input[type="text"], input[name="otp"]', otp)
-
-      const rememberCheckboxes = await page.$$('input[type="checkbox"]')
-      for (const checkbox of rememberCheckboxes) {
-        const label = await page.evaluate(el => {
-          const parent = el.parentElement
-          return parent?.textContent || ''
-        }, checkbox)
-        if (label.includes('Remember')) {
-          await checkbox.click()
-          await new Promise(resolve => setTimeout(resolve, 500))
-          break
-        }
-      }
-
-      console.log('Submitting OTP...')
+      console.log('Submitting verification code...')
       await page.keyboard.press('Enter')
+    } else {
+      // OTP (Google Authenticator) flow
+      if (pageContent.includes('fingerprint') || pageContent.includes('face recognition')) {
+        console.log('Handling biometric authentication screen...')
+
+        await checkRememberCheckbox(page)
+
+        const buttons1 = await page.$$('button')
+        for (const button of buttons1) {
+          const text = await page.evaluate(el => el.textContent, button)
+          if (text?.includes('Continue')) {
+            await button.click()
+            break
+          }
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        const buttons2 = await page.$$('button')
+        for (const button of buttons2) {
+          const text = await page.evaluate(el => el.textContent, button)
+          if (text?.includes('Try another method')) {
+            await button.click()
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            break
+          }
+        }
+
+        const buttons3 = await page.$$('button')
+        for (const button of buttons3) {
+          const text = await page.evaluate(el => el.textContent, button)
+          if (text?.includes('Google Authenticator') || text?.includes('Authenticator')) {
+            await button.click()
+            break
+          }
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const currentContent = await page.content()
+
+      if (currentContent.includes('one-time') || currentContent.includes('code')) {
+        console.log('OTP required')
+
+        const otp = await promptCode('Enter your OTP code from Google Authenticator: ')
+
+        await page.waitForSelector('input[type="text"], input[name="otp"]', { timeout: 10000 })
+        await page.type('input[type="text"], input[name="otp"]', otp)
+
+        await checkRememberCheckbox(page)
+
+        console.log('Submitting OTP...')
+        await page.keyboard.press('Enter')
+      }
     }
 
     console.log('Waiting for login to complete...')
