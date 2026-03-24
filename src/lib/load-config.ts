@@ -1,7 +1,7 @@
 import fsp from 'fs/promises'
 import Joi from 'joi'
 import path from 'path'
-import { packageDirectory } from 'pkg-dir'
+import { packageDirectory } from 'package-directory'
 
 export type ThemeProfile = {
   type: 'theme'
