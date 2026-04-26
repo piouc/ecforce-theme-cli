@@ -9,7 +9,8 @@ import { parse, resolve } from 'path'
 import { loadConfig } from './lib/load-config.js'
 import open from 'open'
 import { lpPull, lpSync } from './lib/lp-api.js'
-import { getCurrentBranchName, getLpProfile, getThemeProfile, formatAxiosError } from './lib/utils.js'
+import { pagePull, pageSync, pageSyncOne, findPage } from './lib/page-api.js'
+import { getCurrentBranchName, getLpProfile, getPageProfile, getThemeProfile, formatAxiosError } from './lib/utils.js'
 import pLimit from 'p-limit'
 import pDebounce from 'p-debounce'
 import { createClient } from './lib/create-client.js'
@@ -135,6 +136,75 @@ program
             case 'change':
               await lpSync(client, profile)
               console.log(`sync`)
+              break
+          }
+          wss.clients.forEach(ws => {
+            ws.send(JSON.stringify({type: 'update'}))
+          })
+        } catch (err) {
+          console.error(formatAxiosError(err))
+        }
+      })
+    }
+  })
+
+program
+  .command('page-pull')
+  .argument('[identifier]', 'page name or pageId')
+  .option('-a, --all', 'pull all pages')
+  .action(async (identifier, options) => {
+    const profile = getPageProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
+
+    if(options.all){
+      await pagePull(client, profile, profile.pages)
+    } else {
+      if(!identifier) throw new Error('Please specify a page name/id or use --all')
+      const page = findPage(profile, identifier)
+      if(!page) throw new Error(`No page found matching "${identifier}"`)
+      await pagePull(client, profile, [page])
+    }
+  })
+
+program
+  .command('page-sync')
+  .argument('[identifier]', 'page name or pageId')
+  .option('-a, --all', 'sync all pages')
+  .option('-w, --watch', 'watch files')
+  .action(async (identifier, options) => {
+    const profile = getPageProfile(config, currentBranchName)
+    if(!profile) throw new Error(`No matching profile was found for ${currentBranchName} branch`)
+
+    let targetPages = profile.pages
+    if(!options.all){
+      if(!identifier) throw new Error('Please specify a page name/id or use --all')
+      const page = findPage(profile, identifier)
+      if(!page) throw new Error(`No page found matching "${identifier}"`)
+      targetPages = [page]
+    }
+
+    await pageSync(client, profile, targetPages)
+
+    if(options.watch){
+      const wss = new WebSocketServer({
+        port: 8080
+      })
+      wss.on('connection', (ws, req) => {
+        console.log(`connected ${req.socket.remoteAddress}`)
+      })
+
+      const watcher = chokidar.watch(profile.dir, {cwd: profile.dir, ignoreInitial: true})
+      watcher.on('all', async (type, path) => {
+        try {
+          switch(type){
+            case 'change':
+              const changedPage = profile.pages.find(p => {
+                const filename = `${p.name || p.pageId}.html`
+                return path === filename
+              })
+              if(changedPage){
+                await pageSyncOne(client, profile, changedPage)
+              }
               break
           }
           wss.clients.forEach(ws => {

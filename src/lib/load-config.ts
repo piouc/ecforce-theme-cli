@@ -31,6 +31,22 @@ const lpProfileSchema = Joi.object<LpProfile>({
   dir: Joi.string().required(),
 });
 
+export type PageProfile = {
+  type: 'page'
+  branch: string
+  dir: string
+  pages: { pageId: string, name?: string }[]
+}
+const pageProfileSchema = Joi.object<PageProfile>({
+  type: Joi.string().valid('page').required(),
+  branch: Joi.string().required(),
+  dir: Joi.string().required(),
+  pages: Joi.array().items(Joi.object({
+    pageId: Joi.string().required(),
+    name: Joi.string().optional(),
+  })).required(),
+});
+
 export type Config = {
   basicAuthUsername: string
   basicAuthPassword: string
@@ -38,7 +54,7 @@ export type Config = {
   password: string
   baseUrl: string
   authType?: 'legacy' | 'ecforceAccount'
-  profiles: (ThemeProfile | LpProfile)[]
+  profiles: (ThemeProfile | LpProfile | PageProfile)[]
 }
 const configSchema = Joi.object<Config>({
   basicAuthUsername: Joi.string().required(),
@@ -47,7 +63,7 @@ const configSchema = Joi.object<Config>({
   password: Joi.string().required(),
   baseUrl: Joi.string().uri().required(),
   authType: Joi.string().valid('legacy', 'ecforceAccount').optional().default('legacy'),
-  profiles: Joi.array().items(Joi.alternatives().try(themeProfileSchema, lpProfileSchema)).required(),
+  profiles: Joi.array().items(Joi.alternatives().try(themeProfileSchema, lpProfileSchema, pageProfileSchema)).required(),
 });
 
 export const loadConfig = async (configPath: string) => {

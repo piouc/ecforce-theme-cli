@@ -28,6 +28,15 @@ Put `ecforce.config.json` to project root.
       "lpId": "LP_ID",
       "branch": "BRANCH_NAME",
       "dir": "DIRECTORY_PATH"
+    },
+    {
+      "type": "page",
+      "branch": "BRANCH_NAME",
+      "dir": "DIRECTORY_PATH",
+      "pages": [
+        { "pageId": "PAGE_ID", "name": "PAGE_NAME" },
+        { "pageId": "PAGE_ID" }
+      ]
     }
   ]
 }
@@ -52,6 +61,26 @@ watch files
 ```bash
 npx ecforce-theme-cli pull
 ```
+
+### Page Pull
+```bash
+npx ecforce-theme-cli page-pull <name|pageId>
+npx ecforce-theme-cli page-pull -a
+```
+#### Options
+- -a, --all
+pull all pages
+
+### Page Sync
+```bash
+npx ecforce-theme-cli page-sync <name|pageId>
+npx ecforce-theme-cli page-sync -a
+```
+#### Options
+- -a, --all
+sync all pages
+- -w, --watch
+watch files
 
 ### Preview
 ```bash

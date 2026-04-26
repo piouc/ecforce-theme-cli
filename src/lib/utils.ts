@@ -1,4 +1,4 @@
-import { Config, LpProfile, ThemeProfile } from './load-config'
+import { Config, LpProfile, PageProfile, ThemeProfile } from './load-config'
 import { exec } from 'child_process'
 import { AxiosError } from 'axios'
 
@@ -8,6 +8,10 @@ export const getThemeProfile = (config: Config, branch: string): ThemeProfile | 
 
 export const getLpProfile = (config: Config, branch: string): LpProfile | undefined => {
   return config.profiles.filter(profile => profile.type === 'lp').find(profile => profile.branch === branch)
+}
+
+export const getPageProfile = (config: Config, branch: string): PageProfile | undefined => {
+  return config.profiles.filter(profile => profile.type === 'page').find(profile => profile.branch === branch)
 }
 
 export const getCurrentBranchName = () => {
