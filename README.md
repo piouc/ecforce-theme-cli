@@ -49,6 +49,18 @@ Put `ecforce.config.json` to project root.
 
 ## Commands
 
+### Init
+```bash
+npx ecforce-theme-cli init
+npx ecforce-theme-cli init theme
+npx ecforce-theme-cli init lp
+npx ecforce-theme-cli init page
+```
+- `init` — Create config file with authentication settings
+- `init theme` — Add a theme profile to existing config
+- `init lp` — Add an LP profile to existing config
+- `init page` — Add a page profile to existing config
+
 ### Sync
 ```bash
 npx ecforce-theme-cli sync

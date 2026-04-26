@@ -14,6 +14,7 @@ import { getCurrentBranchName, getLpProfile, getPageProfile, getThemeProfile, fo
 import pLimit from 'p-limit'
 import pDebounce from 'p-debounce'
 import { createClient } from './lib/create-client.js'
+import { handleInit } from './lib/init.js'
 
 const program = new Command()
   .option('-c, --config <path>', 'config file', 'ecforce.config.json')
@@ -25,6 +26,14 @@ const opts = new Command()
   .option('-c, --config <path>', 'config file', 'ecforce.config.json')
   .parse(process.argv)
   .opts()
+
+const initIndex = process.argv.indexOf('init')
+if(initIndex !== -1){
+  const initArgs = process.argv.slice(initIndex + 1).filter(a => !a.startsWith('-'))
+  await handleInit(initArgs, opts.config)
+  process.exit(0)
+}
+
 const config = await loadConfig(opts.config)
 const client = await createClient(config, opts.config)
 const currentBranchName = await getCurrentBranchName()
