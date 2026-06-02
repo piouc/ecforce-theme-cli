@@ -140,63 +140,17 @@ export const loginWithEcforceAccount = async (config: Config, configPath: string
     console.log('Waiting for login to complete...')
     await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 })
 
-    console.log('Waiting for div elements to click...')
-    const divSelector = 'div:has(> svg):has(> h1)'
+    console.log('Login to accounts.ec-force.com completed. Opening tenant admin page directly...')
 
-    await page.waitForSelector(divSelector, { timeout: 10000 })
-    console.log('Found div elements, clicking all...')
-
-    const divElements = await page.$$(divSelector)
-    console.log(`Found ${divElements.length} div elements to click`)
-
-    if (divElements.length === 0) {
-      throw new Error('No div elements found matching selector: div:has(> svg):has(> h1)')
-    }
-
-    for (let i = 0; i < divElements.length; i++) {
-      await divElements[i].click()
-      console.log(`Clicked div element ${i + 1}/${divElements.length}`)
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-
-    console.log('Waiting for site login button...')
     const baseUrlWithoutTrailingSlash = config.baseUrl.replace(/\/$/, '')
     const fullLoginUrl = `${baseUrlWithoutTrailingSlash}/ec_force/admins/auth/ecforce_id`
-    const loginButtonSelector = `a[href="${fullLoginUrl}"]`
-
-    await page.waitForSelector(loginButtonSelector, { timeout: 15000 })
-    console.log('Login button found')
-
-    const urlPromise = new Promise<string>((resolve) => {
-      browser.once('targetcreated', async (target) => {
-        const url = target.url()
-        resolve(url)
-      })
-    })
-
-    console.log('Clicking login button...')
-    await page.click(loginButtonSelector)
-
-    console.log('Waiting for new tab...')
-    const actualUrl = await urlPromise
-    console.log(`Initial URL (before redirect): ${actualUrl}`)
-
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const pages = await browser.pages()
-    const targetPage = pages[pages.length - 1]
-    await targetPage.close()
 
     const authenticatedPage = await browser.newPage()
-
     await authenticatedPage.authenticate({
       username: config.basicAuthUsername,
       password: config.basicAuthPassword
     })
-
-    console.log('Opening admin page with Basic Auth...')
-
-    await authenticatedPage.goto(actualUrl, { waitUntil: 'networkidle2', timeout: 30000 })
+    await authenticatedPage.goto(fullLoginUrl, { waitUntil: 'networkidle2', timeout: 30000 })
 
     console.log('Admin page loaded')
 
